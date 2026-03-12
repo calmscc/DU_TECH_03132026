@@ -1,4 +1,4 @@
-from config import client
+from backend.config import client
 import json
 
 def extract_products(text):
