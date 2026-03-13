@@ -27,7 +27,7 @@ def analyze(product: str = Query(...), brand: str = Query(...)):
 
     for prompt, text in responses.items():
 
-        products = extract_products(text)
+        retailers = extract_retailers(text)
 
         platform_products[prompt] = products
 
