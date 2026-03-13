@@ -131,35 +131,21 @@ AI Analysis Modules
  └─ verification_engine.py
 ```
 
-### Why this architecture?
-
-Node.js  
-✔ Fast API server  
-✔ Frontend integration  
-
-Python  
-✔ Data analysis  
-✔ AI experimentation  
-✔ Easy scaling to ML models  
-
 ---
 
 # 🖥 Tech Stack
 
 ### Frontend
-- HTML  
-- CSS  
-- JavaScript  
+- HTML
+- CSS
+- JavaScript
 
-### Backend API
-- Node.js  
-- Express.js  
+### Backend
+- Node.js
+- Express.js
 
 ### AI Processing
-- Python  
-
-### Data Analysis
-- Python analytics modules  
+- Python
 
 ### Deployment
 - Render Cloud Hosting
@@ -194,7 +180,7 @@ BOTB
 
 ---
 
-# ⚙️ How to Run the Application
+# ⚙️ Running the Application Locally
 
 ### 1️⃣ Clone the Repository
 
@@ -207,13 +193,13 @@ cd BOTB
 
 ### 2️⃣ Install Dependencies
 
-Node:
+Node.js dependencies:
 
 ```
 npm install
 ```
 
-Python:
+Python dependencies:
 
 ```
 pip install -r requirements.txt
@@ -221,7 +207,7 @@ pip install -r requirements.txt
 
 ---
 
-### 3️⃣ Run the Server
+### 3️⃣ Start the Server
 
 ```
 node backend/server.js
@@ -237,7 +223,51 @@ http://localhost:5000
 
 ---
 
-# 🧪 How to Use
+# ☁️ Running the Application Using Render (Cloud Deployment)
+
+NOLAlytics can also run entirely in the cloud using **Render**.
+
+### Step 1 — Create a Web Service
+
+Go to:
+
+```
+https://render.com
+```
+
+Create a **New Web Service** and connect your GitHub repository.
+
+---
+
+### Step 2 — Configure Render Settings
+
+**Build Command**
+
+```
+pip install -r requirements.txt && npm install
+```
+
+**Start Command**
+
+```
+node backend/server.js
+```
+
+---
+
+### Step 3 — Deploy
+
+Once deployed, Render will provide a public URL such as:
+
+```
+https://your-app-name.onrender.com
+```
+
+Open that URL to access the **NOLAlytics dashboard**.
+
+---
+
+# 🧪 How to Use the App
 
 1️⃣ Enter a **Retail Store**
 
@@ -271,28 +301,33 @@ Analyze Visibility
 
 # ✅ How to Tell the App Started Successfully
 
-When running the server you should see:
+When running locally you should see:
 
 ```
 Server running on port 5000
 ```
 
-Then open:
+When deployed on Render the dashboard should load at:
 
 ```
-http://localhost:5000
+https://your-app-name.onrender.com
 ```
 
-If the dashboard loads and allows queries, the application is working.
+If the interface loads and accepts queries, the application is working.
 
 ---
 
 # 🧠 Future Improvements
-
-NOLAlytics can evolve into a full AI analytics platform with:
 
 • Real AI API integrations  
 • Competitor visibility benchmarking  
 • SEO-style AI optimization tools  
 • Brand monitoring dashboards  
 • Automated weekly reports  
+
+---
+
+
+NOLAlytics demonstrates how businesses can **measure their presence in the emerging AI-powered discovery ecosystem.**
+
+As AI reshapes commerce, tools like NOLAlytics will become essential for understanding **who AI recommends — and why.**
