@@ -1,40 +1,21 @@
-import json
-from backend.config import client
-
+retailers = [
+"amazon",
+"walmart",
+"best buy",
+"target",
+"costco",
+"newegg",
+"apple store",
+"micro center"
+]
 
 def extract_retailers(text):
 
-    prompt = f"""
-Extract retailer or store names from this text.
+    found = []
 
-Examples include:
-Home Depot, Lowe's, Walmart, Target, Amazon, Ace Hardware.
+    for store in retailers:
 
-Return JSON like this:
+        if store in text.lower():
+            found.append(store)
 
-{{"retailers":["store1","store2","store3"]}}
-
-Text:
-{text}
-"""
-
-    response = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
-        messages=[
-            {"role":"system","content":"Return only JSON."},
-            {"role":"user","content":prompt}
-        ]
-    )
-
-    content = response.choices[0].message.content
-
-    try:
-        data = json.loads(content)
-
-        if "retailers" in data:
-            return data["retailers"]
-
-    except:
-        pass
-
-    return []
+    return found
