@@ -1,29 +1,51 @@
-from backend.config import client
+import random
 
-def generate_queries(product):
+retailers = [
+"Amazon",
+"Walmart",
+"Best Buy",
+"Target",
+"Costco",
+"Newegg",
+"Apple Store",
+"Micro Center"
+]
 
-    return [
-        f"What are the best {product} brands?",
-        f"Where can I buy the best {product}?",
-        f"Top rated {product} products?",
-        f"What {product} do professionals recommend?",
-        f"What {product} should I buy online?"
-    ]
+phrases = [
+"The best place to buy PRODUCT is STORE.",
+"Many shoppers buy PRODUCT from STORE.",
+"Consumers recommend STORE for PRODUCT.",
+"Top retailers selling PRODUCT include STORE.",
+"You can purchase PRODUCT at STORE.",
+"STORE offers competitive prices for PRODUCT.",
+"Experts recommend STORE when shopping for PRODUCT.",
+"Many reviews mention STORE for PRODUCT."
+]
+
+extras = [
+"because of pricing.",
+"because of discounts.",
+"because of fast shipping.",
+"because of availability.",
+"because of quality.",
+"because of return policies."
+]
+
+responses = []
+
+for store in retailers:
+
+    for phrase in phrases:
+
+        for extra in extras:
+
+            text = phrase.replace("STORE",store)
+
+            responses.append(text + " " + extra)
 
 
-def query_ai(product):
+def query_ai(prompt):
 
-    queries = generate_queries(product)
+    response = random.choice(responses)
 
-    responses = {}
-
-    for q in queries:
-
-        response = client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
-            messages=[{"role":"user","content":q}]
-        )
-
-        responses[q] = response.choices[0].message.content
-
-    return responses
+    return response
