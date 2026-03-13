@@ -108,6 +108,10 @@ input{
 
 <script>
 
+
+
+const API_BASE = "https://botb.onrender.com";
+
 /*
 =====================================================
 START AI AUDIT
@@ -118,7 +122,7 @@ async function startAudit(){
 
  const product = document.getElementById("productInput").value
 
- await fetch("http://localhost:5000/api/audit",{
+ await fetch(`${API_BASE}/api/audit`,{
 
   method:"POST",
 
@@ -144,7 +148,7 @@ async function monitorProgress(){
 
  const interval = setInterval(async ()=>{
 
-  const res = await fetch("http://localhost:5000/api/status")
+  const res = await fetch(`${API_BASE}/api/status`)
 
   const data = await res.json()
 
@@ -181,7 +185,7 @@ async function loadCategory(){
  document.getElementById("categoryInput").value
 
  const res = await fetch(
- `http://localhost:5000/api/products/category/${category}`
+ `${API_BASE}/api/products/category/${category}`
  )
 
  const data = await res.json()
@@ -202,7 +206,7 @@ async function searchBrand(){
  document.getElementById("brandInput").value
 
  const res = await fetch(
- `http://localhost:5000/api/products/search/${brand}`
+ `${API_BASE}/api/products/search/${brand}`
  )
 
  const data = await res.json()
@@ -248,7 +252,7 @@ function renderProducts(products){
  })
 
 }
-
+ 
 </script>
 
 </body>
