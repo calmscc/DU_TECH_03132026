@@ -2,128 +2,87 @@ async function run(){
 
 try{
 
-// Get user inputs
 let product = document.getElementById("product").value.trim()
 let brand = document.getElementById("brand").value.trim()
 
-// Validation
 if(!product || !brand){
-alert("Please enter both a product and brand")
+alert("Please enter both product and brand")
 return
 }
 
-// Show results section
-document.getElementById("results-section").style.display = "block"
+document.getElementById("results-section").style.display="block"
 
-// Loading messages
-document.getElementById("visibility").innerText = "Analyzing..."
-document.getElementById("accuracy").innerText = "Analyzing..."
-document.getElementById("responses").innerHTML = "<p>Running AI queries...</p>"
-
-// Call backend API
-let res = await fetch(
-`/analyze?product=${encodeURIComponent(product)}&brand=${encodeURIComponent(brand)}`
-)
-
-// Check for server errors
-if(!res.ok){
-throw new Error("Server error")
-}
+let res = await fetch(`/analyze?product=${encodeURIComponent(product)}&brand=${encodeURIComponent(brand)}`)
 
 let data = await res.json()
 
-console.log("API DATA:", data)
+console.log(data)
 
 
-// ---------------------------
-// Visibility Score
-// ---------------------------
-if(data.visibility !== undefined){
-document.getElementById("visibility").innerText =
-data.visibility + "%"
-}
+// --------------------
+// EXECUTIVE SUMMARY
+// --------------------
+
+let summary = `
+<h2>Executive Summary</h2>
+<p><b>Product:</b> ${product}</p>
+<p><b>Brand:</b> ${brand}</p>
+<p><b>AI Visibility Score:</b> ${data.visibility}%</p>
+<p><b>AI Accuracy Score:</b> ${Math.round(data.accuracy*100)}%</p>
+`
+
+document.getElementById("summary").innerHTML = summary
 
 
-// ---------------------------
-// Accuracy Score
-// ---------------------------
-if(data.accuracy !== undefined){
-document.getElementById("accuracy").innerText =
-Math.round(data.accuracy * 100) + "%"
-}
+
+// --------------------
+// COMPETITOR LEADERBOARD
+// --------------------
+
+let sorted = Object.entries(data.competitors)
+.sort((a,b)=>b[1]-a[1])
+
+let leaderboard="<ol>"
+
+sorted.forEach(([name,count])=>{
+leaderboard+=`<li>${name} — ${count} mentions</li>`
+})
+
+leaderboard+="</ol>"
+
+document.getElementById("competitors").innerHTML=leaderboard
 
 
-// ---------------------------
-// Platform Products Table
-// ---------------------------
-const platformBody = document.querySelector("#platform-products-table tbody")
 
-if(platformBody && data.platform_products){
+// --------------------
+// KEY INSIGHT
+// --------------------
 
-platformBody.innerHTML = ""
+let top = sorted[0]
 
-for(const [platform, products] of Object.entries(data.platform_products)){
+let insight = `
+<h2>Key Insight</h2>
+<p>${top[0]} appears most frequently in AI shopping recommendations for <b>${product}</b>.</p>
+`
 
-const tr = document.createElement("tr")
-
-const tdPlatform = document.createElement("td")
-tdPlatform.textContent = platform
-
-const tdProducts = document.createElement("td")
-tdProducts.textContent = products.join(", ")
-
-tr.appendChild(tdPlatform)
-tr.appendChild(tdProducts)
-
-platformBody.appendChild(tr)
-
-}
-
-}
+document.getElementById("insight").innerHTML=insight
 
 
-// ---------------------------
-// Competitor Table
-// ---------------------------
-const competitorBody = document.querySelector("#competitors-table tbody")
 
-if(competitorBody && data.competitors){
+// --------------------
+// AI QUERY RESULTS
+// --------------------
 
-competitorBody.innerHTML = ""
+let queryHTML=""
 
-for(const [name,count] of Object.entries(data.competitors)){
+for(const [query,products] of Object.entries(data.platform_products)){
 
-const tr = document.createElement("tr")
+if(products.length>0){
 
-const tdName = document.createElement("td")
-tdName.textContent = name
-
-const tdCount = document.createElement("td")
-tdCount.textContent = count
-
-tr.appendChild(tdName)
-tr.appendChild(tdCount)
-
-competitorBody.appendChild(tr)
-
-}
-
-}
-
-
-// ---------------------------
-// AI Responses
-// ---------------------------
-let html = "<h2>AI Responses</h2>"
-
-if(data.responses){
-
-for(let prompt in data.responses){
-
-html += `
-<div class="response-block">
-<h4>${prompt}</h4>
-<p>${data.responses[prompt]}</p>
+queryHTML+=`
+<div class="query-block">
+<h4>${query}</h4>
+<p><b>Retailers mentioned:</b> ${products.join(", ")}</p>
 </div>
 `
 
@@ -131,12 +90,33 @@ html += `
 
 }
 
-document.getElementById("responses").innerHTML = html
+document.getElementById("queries").innerHTML=queryHTML
+
+
+
+// --------------------
+// FULL AI RESPONSES (COLLAPSIBLE)
+// --------------------
+
+let html=""
+
+for(const [prompt,response] of Object.entries(data.responses)){
+
+html+=`
+<details>
+<summary>${prompt}</summary>
+<p>${response}</p>
+</details>
+`
+
+}
+
+document.getElementById("responses").innerHTML=html
 
 
 }catch(error){
 
-console.error("Dashboard error:", error)
+console.error(error)
 
 document.getElementById("responses").innerHTML =
 "<p style='color:red;'>Error running analysis.</p>"
