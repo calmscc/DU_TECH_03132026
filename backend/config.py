@@ -1,4 +1,6 @@
 import os
-from openai import OpenAI
+from groq import Groq
 
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+client = Groq(
+  api_key=os.getenv("GROQ_API_KEY")
+)
