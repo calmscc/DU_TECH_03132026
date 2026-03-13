@@ -1,65 +1,63 @@
-let chartInstance = null;
+async function run(){
 
-async function runAnalysis() {
+let product = document.getElementById("product").value
+let brand = document.getElementById("brand").value
 
-  const product = document.getElementById("productInput").value;
+let res = await fetch(`/analyze?product=${product}&brand=${brand}`)
 
-  if (!product) {
-    alert("Please enter a product name.");
-    return;
-  }
+let data = await res.json()
 
-  try {
+document.getElementById("visibility").innerText =
+data.visibility + "%"
 
-    const response = await fetch(`/run-analysis?product=${encodeURIComponent(product)}`);
-    const data = await response.json();
+document.getElementById("accuracy").innerText =
+data.accuracy + "%"
 
-    // show results section
-    document.getElementById("results").style.display = "block";
 
-    // update scores
-    document.getElementById("visibilityScore").innerText =
-      data.visibility_score + "%";
+let labels = Object.keys(data.competitors)
+let values = Object.values(data.competitors)
 
-    document.getElementById("accuracyScore").innerText =
-      data.accuracy_score + "%";
+new Chart(document.getElementById("competitorChart"),{
 
-    // competitor data
-    const labels = Object.keys(data.competitors);
-    const values = Object.values(data.competitors);
+type:"bar",
 
-    const ctx = document.getElementById("competitorChart");
+data:{
+labels:labels,
+datasets:[{
+label:"Competitor Mentions",
+data:values
+}]
+}
 
-    // destroy previous chart if exists
-    if (chartInstance) {
-      chartInstance.destroy();
-    }
+})
 
-    chartInstance = new Chart(ctx, {
-      type: "bar",
-      data: {
-        labels: labels,
-        datasets: [
-          {
-            label: "AI Recommendation Frequency",
-            data: values
-          }
-        ]
-      },
-      options: {
-        responsive: true,
-        plugins: {
-          legend: {
-            display: true
-          }
-        }
-      }
-    });
 
-  } catch (error) {
+let heatLabels = Object.keys(data.heatmap)
+let heatValues = Object.values(data.heatmap)
 
-    console.error("Error:", error);
-    alert("Analysis failed. Check backend connection.");
+new Chart(document.getElementById("heatmapChart"),{
 
-  }
+type:"bar",
+
+data:{
+labels:heatLabels,
+datasets:[{
+label:"AI Visibility",
+data:heatValues
+}]
+}
+
+})
+
+
+let html=""
+
+for(let p in data.responses){
+
+html+=`<h3>${p}</h3><p>${data.responses[p]}</p>`
+
+}
+
+document.getElementById("responses").innerHTML = html
+
 }
