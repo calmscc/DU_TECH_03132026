@@ -1,7 +1,4 @@
 fastapi
 uvicorn
 openai
-pandas
-beautifulsoup4
-requests
-python-dotenv
+python-multipart
