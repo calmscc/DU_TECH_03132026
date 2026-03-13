@@ -3,8 +3,9 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from backend.ai_query_engine import query_ai
-from backend.retailer_extractor import extract_retailers
-from backend.analysis_engine import retailer_visibility, retailer_share
+from backend.retail_extractor import extract_products
+from backend.audit_engine import ai_visibility_audit
+from backend.verification_engine import verify_product_accuracy
 
 app = FastAPI()
 
@@ -18,31 +19,30 @@ def home():
 
 @app.get("/analyze")
 
-def analyze(product: str = Query(...), retailer: str = Query(...)):
+def analyze(product: str = Query(...), brand: str = Query(...)):
 
     responses = query_ai(product)
 
-    platform_retailers = {}
+    platform_products = {}
 
-    for query, text in responses.items():
+    for prompt, text in responses.items():
 
-        stores = extract_retailers(text)
+        products = extract_products(text)
 
-        platform_retailers[query] = stores
+        platform_products[prompt] = products
 
-    visibility = retailer_visibility(platform_retailers, retailer)
+    audit = ai_visibility_audit(product, brand, platform_products)
 
-    competitors = retailer_share(platform_retailers)
+    verification = verify_product_accuracy(platform_products, brand)
 
     return {
 
         "product": product,
-        "retailer": retailer,
+        "brand": brand,
 
         "responses": responses,
-        "retailers_found": platform_retailers,
+        "platform_products": platform_products,
 
-        "visibility_score": visibility,
-        "retailer_mentions": competitors
-
+        "visibility_audit": audit,
+        "accuracy_report": verification
     }
