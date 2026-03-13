@@ -1,22 +1,13 @@
-import cron from "node-cron";
-import { crawlProduct } from "./crawler.js";
+import cron from "node-cron"
 
-const products = [
- "headphones",
- "laptops",
- "running shoes",
- "air fryer",
- "gaming mouse"
-];
+export function startScheduler(runAudit){
 
-cron.schedule("0 * * * *", async () => {
+ cron.schedule("0 * * * *",()=>{
 
- console.log("Starting scheduled crawl...");
+  console.log("Running scheduled audit")
 
- for(const product of products){
+  runAudit()
 
-  await crawlProduct(product);
+ })
 
- }
-
-});
+}
