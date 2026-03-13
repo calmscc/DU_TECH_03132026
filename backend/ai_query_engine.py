@@ -1,7 +1,7 @@
 import os
-from openai import OpenAI
+from config import client
 
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
 platforms = {
     "ChatGPT":"gpt-4o-mini",
@@ -20,7 +20,7 @@ def query_ai(product):
         try:
 
             response = client.chat.completions.create(
-                model=model,
+                model="llama3-8b-8192",
                 messages=[{"role":"user","content":query}]
             )
 
