@@ -3,7 +3,7 @@
 
 <head>
 
-<title>NOLAlytics AI Analyzer</title>
+<title>NOLAlytics AI Retail Visibility Analyzer</title>
 
 <style>
 
@@ -30,20 +30,12 @@ input{
  margin-right:10px;
 }
 
-#progress{
- font-size:24px;
- font-weight:bold;
-}
-
-#prompt{
- background:#eeeeee;
- padding:10px;
- margin-top:10px;
-}
-
 #results{
  margin-top:20px;
  font-size:18px;
+ background:white;
+ padding:15px;
+ border-radius:8px;
 }
 
 #products{
@@ -68,22 +60,13 @@ input{
 
 <body>
 
-<h1>NOLAlytics AI Product Visibility Analyzer</h1>
+<h1>NOLAlytics AI Retail Visibility Analyzer</h1>
 
+<h2>Analyze AI Shopping Visibility</h2>
 
-<h2>Run AI Visibility Audit</h2>
+<input id="productInput" placeholder="Enter product (example: headphones)" />
 
-<input id="productInput" placeholder="Enter product (example: hammer)" />
-
-<button onclick="startAudit()">Run Audit</button>
-
-<h3>Progress</h3>
-
-<div id="progress">0%</div>
-
-<h3>Current Prompt</h3>
-
-<div id="prompt"></div>
+<button onclick="runAudit()">Analyze Visibility</button>
 
 <h3>Results</h3>
 
@@ -91,32 +74,26 @@ input{
 
 <hr>
 
-<!-- Product Browser -->
-
 <h2>Retail Product Explorer</h2>
 
 <input id="categoryInput" placeholder="Category (tools, electronics)" />
 
 <button onclick="loadCategory()">Load Category</button>
 
-<input id="brandInput" placeholder="Search brand" />
-
-<button onclick="searchBrand()">Search Brand</button>
-
 <div id="products"></div>
 
 <script>
 
+const API_BASE = "";
 
-
-const API_BASE = "https://botb-pnyw.onrender.com";
-
-
-async function startAudit(){
+async function runAudit(){
 
  const product = document.getElementById("productInput").value
 
- await fetch(`${API_BASE}/api/audit`,{
+ document.getElementById("results").innerHTML =
+ "Analyzing AI recommendations..."
+
+ const res = await fetch(`${API_BASE}/api/audit`,{
 
   method:"POST",
 
@@ -128,41 +105,34 @@ async function startAudit(){
 
  })
 
- monitorProgress()
+ const data = await res.json()
+
+ let rankingHTML = "<h3>Store Rankings</h3>"
+
+ data.rankings.forEach(r=>{
+  rankingHTML += `${r.store} — ${r.mentions} mentions<br>`
+ })
+
+ document.getElementById("results").innerHTML = `
+
+  <h3>AI Retail Visibility Results</h3>
+
+  Product: <b>${data.product}</b><br><br>
+
+  ${rankingHTML}
+
+  <br>
+  Queries Tested: ${data.promptsTested}
+
+ `
 
 }
 
-
-
-async function monitorProgress(){
-
- const interval = setInterval(async ()=>{
-
-  const res = await fetch(`${API_BASE}/api/status`)
-
-  const data = await res.json()
-
-  document.getElementById("progress").innerText =
-   data.progress + "%"
-
-  document.getElementById("prompt").innerText =
-   data.currentPrompt
-
-  if(data.completed){
-
-   clearInterval(interval)
-
-   document.getElementById("results").innerHTML = `
-    Visibility Score: ${data.results.visibilityScore}% <br>
-    Prompts Tested: ${data.results.promptsTested}
-   `
-
-  }
-
- },1000)
-
-}
-
+/*
+=====================================================
+LOAD PRODUCTS BY CATEGORY
+=====================================================
+*/
 
 async function loadCategory(){
 
@@ -171,22 +141,6 @@ async function loadCategory(){
 
  const res = await fetch(
  `${API_BASE}/api/products/category/${category}`
- )
-
- const data = await res.json()
-
- renderProducts(data)
-
-}
-
-
-async function searchBrand(){
-
- const brand =
- document.getElementById("brandInput").value
-
- const res = await fetch(
- `${API_BASE}/api/products/search/${brand}`
  )
 
  const data = await res.json()
@@ -216,13 +170,9 @@ function renderProducts(products){
     <div class="product-title">${p.name}</div>
 
     Brand: ${p.brand} <br>
-
     Category: ${p.category} <br>
-
     Store: ${p.store} <br>
-
     Price: $${p.price} <br>
-
     Rating: ${p.rating}
 
    </div>
@@ -232,7 +182,7 @@ function renderProducts(products){
  })
 
 }
- 
+
 </script>
 
 </body>
