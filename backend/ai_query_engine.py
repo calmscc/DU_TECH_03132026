@@ -9,5 +9,4 @@ def query_ai(product):
                 model="openai/gpt-oss-120b",
                 messages=[{"role":"user","content":query}]
             )
-
-            results[platform] = response.choices[0].message.content
+    results[platform] = response.choices[0].message.content
