@@ -1,24 +1,13 @@
-from fastapi import FastAPI, Query
-from fastapi.responses import FileResponse
-from fastapi.staticfiles import StaticFiles
+import sys
+import json
 
 from backend.ai_query_engine import query_ai
 from backend.retail_extractor import extract_retailers
 from backend.audit_engine import ai_visibility_audit
 from backend.verification_engine import verify_product_accuracy
 
-app = FastAPI()
 
-app.mount("/static", StaticFiles(directory="frontend"), name="static")
-
-
-@app.get("/")
-def home():
-    return FileResponse("frontend/index.html")
-
-
-@app.get("/analyze")
-def analyze(product: str = Query(...), brand: str = Query(...)):
+def run_analysis(product, brand):
 
     responses = query_ai(product)
 
@@ -28,7 +17,6 @@ def analyze(product: str = Query(...), brand: str = Query(...)):
 
         retailers = extract_retailers(text)
 
-        # FIXED HERE
         platform_products[prompt] = retailers
 
     audit = ai_visibility_audit(product, brand, platform_products)
@@ -36,13 +24,20 @@ def analyze(product: str = Query(...), brand: str = Query(...)):
     verification = verify_product_accuracy(platform_products, brand)
 
     return {
-
         "product": product,
         "brand": brand,
-
         "responses": responses,
         "platform_products": platform_products,
-
         "visibility_audit": audit,
         "accuracy_report": verification
     }
+
+
+if __name__ == "__main__":
+
+    brand = sys.argv[1]
+    product = sys.argv[2]
+
+    result = run_analysis(product, brand)
+
+    print(json.dumps(result))
