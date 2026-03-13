@@ -1,14 +1,68 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 
 <head>
 
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NOLAlytics AI Analyzer</title>
 
-<title>NOLAlytics AI Visibility Dashboard</title>
+<style>
 
-<link rel="stylesheet" href="/static/style.css">
+body{
+ font-family:Arial;
+ max-width:900px;
+ margin:auto;
+ padding:40px;
+ background:#f9f9f9;
+}
+
+h1{
+ color:#333;
+}
+
+button{
+ padding:10px 15px;
+ margin-top:10px;
+ cursor:pointer;
+}
+
+input{
+ padding:8px;
+ margin-right:10px;
+}
+
+#progress{
+ font-size:24px;
+ font-weight:bold;
+}
+
+#prompt{
+ background:#eeeeee;
+ padding:10px;
+ margin-top:10px;
+}
+
+#results{
+ margin-top:20px;
+ font-size:18px;
+}
+
+#products{
+ margin-top:30px;
+ background:white;
+ padding:15px;
+ border-radius:8px;
+}
+
+.product-card{
+ border-bottom:1px solid #ddd;
+ padding:10px;
+}
+
+.product-title{
+ font-weight:bold;
+}
+
+</style>
 
 </head>
 
@@ -16,47 +70,187 @@
 
 <h1>NOLAlytics AI Product Visibility Analyzer</h1>
 
-<p>
-Measure how often your products appear in AI-generated recommendations
-and identify competitors dominating AI product discovery.
-</p>
-
-<div class="section">
+<!-- Product Audit -->
 
 <h2>Run AI Visibility Audit</h2>
 
-<input id="product" type="text" placeholder="Product (example: hammer)">
-<input id="brand" type="text" placeholder="Brand or Retailer (example: Walmart)">
+<input id="productInput" placeholder="Enter product (example: hammer)" />
 
-<button onclick="run()">Analyze</button>
+<button onclick="startAudit()">Run Audit</button>
 
-</div>
+<h3>Progress</h3>
 
+<div id="progress">0%</div>
 
-<div id="results-section" style="display:none">
+<h3>Current Prompt</h3>
 
-<div class="section" id="summary"></div>
+<div id="prompt"></div>
 
-<div class="section" id="insight"></div>
+<h3>Results</h3>
 
-<div class="section">
-<h2>AI Retailer Leaderboard</h2>
-<div id="competitors"></div>
-</div>
+<div id="results"></div>
 
-<div class="section">
-<h2>AI Shopping Queries</h2>
-<div id="queries"></div>
-</div>
+<hr>
 
-<div class="section">
-<h2>Full AI Responses</h2>
-<div id="responses"></div>
-</div>
+<!-- Product Browser -->
 
-</div>
+<h2>Retail Product Explorer</h2>
 
-<script src="/static/dashboard.js"></script>
+<input id="categoryInput" placeholder="Category (tools, electronics)" />
+
+<button onclick="loadCategory()">Load Category</button>
+
+<input id="brandInput" placeholder="Search brand" />
+
+<button onclick="searchBrand()">Search Brand</button>
+
+<div id="products"></div>
+
+<script>
+
+/*
+=====================================================
+START AI AUDIT
+=====================================================
+*/
+
+async function startAudit(){
+
+ const product = document.getElementById("productInput").value
+
+ await fetch("http://localhost:5000/api/audit",{
+
+  method:"POST",
+
+  headers:{
+   "Content-Type":"application/json"
+  },
+
+  body:JSON.stringify({ product })
+
+ })
+
+ monitorProgress()
+
+}
+
+/*
+=====================================================
+MONITOR AUDIT PROGRESS
+=====================================================
+*/
+
+async function monitorProgress(){
+
+ const interval = setInterval(async ()=>{
+
+  const res = await fetch("http://localhost:5000/api/status")
+
+  const data = await res.json()
+
+  document.getElementById("progress").innerText =
+   data.progress + "%"
+
+  document.getElementById("prompt").innerText =
+   data.currentPrompt
+
+  if(data.completed){
+
+   clearInterval(interval)
+
+   document.getElementById("results").innerHTML = `
+    Visibility Score: ${data.results.visibilityScore}% <br>
+    Prompts Tested: ${data.results.promptsTested}
+   `
+
+  }
+
+ },1000)
+
+}
+
+/*
+=====================================================
+LOAD PRODUCTS BY CATEGORY
+=====================================================
+*/
+
+async function loadCategory(){
+
+ const category =
+ document.getElementById("categoryInput").value
+
+ const res = await fetch(
+ `http://localhost:5000/api/products/category/${category}`
+ )
+
+ const data = await res.json()
+
+ renderProducts(data)
+
+}
+
+/*
+=====================================================
+SEARCH PRODUCTS BY BRAND
+=====================================================
+*/
+
+async function searchBrand(){
+
+ const brand =
+ document.getElementById("brandInput").value
+
+ const res = await fetch(
+ `http://localhost:5000/api/products/search/${brand}`
+ )
+
+ const data = await res.json()
+
+ renderProducts(data)
+
+}
+
+/*
+=====================================================
+RENDER PRODUCTS
+=====================================================
+*/
+
+function renderProducts(products){
+
+ const container = document.getElementById("products")
+
+ container.innerHTML = ""
+
+ products.forEach(p=>{
+
+  container.innerHTML += `
+
+   <div class="product-card">
+
+    <div class="product-title">${p.name}</div>
+
+    Brand: ${p.brand} <br>
+
+    Category: ${p.category} <br>
+
+    Store: ${p.store} <br>
+
+    Price: $${p.price} <br>
+
+    Rating: ${p.rating}
+
+   </div>
+
+  `
+
+ })
+
+}
+
+</script>
 
 </body>
+
 </html>
