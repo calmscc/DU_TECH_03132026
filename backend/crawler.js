@@ -1,22 +1,8 @@
-import cron from "node-cron";
-import { crawlProduct } from "./crawler.js";
+export function crawlAI(prompt,responses){
 
-const products = [
- "headphones",
- "laptops",
- "running shoes",
- "air fryer",
- "gaming mouse"
-];
+ const randomIndex =
+ Math.floor(Math.random()*responses.length)
 
-cron.schedule("0 * * * *", async () => {
+ return responses[randomIndex]
 
- console.log("Starting scheduled crawl...");
-
- for(const product of products){
-
-  await crawlProduct(product);
-
- }
-
-});
+}
