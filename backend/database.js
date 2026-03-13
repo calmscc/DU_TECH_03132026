@@ -1,8 +1,13 @@
-import { createClient } from "@supabase/supabase-js";
+const audits = []
 
-const supabase = createClient(
- process.env.SUPABASE_URL,
- process.env.SUPABASE_ANON_KEY
-);
+export function saveAudit(data){
 
-export default supabase;
+ audits.push(data)
+
+}
+
+export function getAudits(){
+
+ return audits
+
+}
