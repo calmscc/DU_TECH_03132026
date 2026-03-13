@@ -1,227 +1,239 @@
-import express from "express"
-import cors from "cors"
-import path from "path"
-import { fileURLToPath } from "url"
+<!DOCTYPE html>
+<html>
 
-const app = express()
+<head>
 
-app.use(cors())
-app.use(express.json())
+<title>NOLAlytics AI Retail Visibility Analyzer</title>
 
-/*
-========================================
-AI ENGINES
-========================================
-*/
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-const aiEngines = [
- "chatgpt",
- "gemini",
- "perplexity"
-]
+<style>
 
-/*
-========================================
-RETAIL STORES
-========================================
-*/
+body{
+ font-family:Arial;
+ max-width:1000px;
+ margin:auto;
+ padding:40px;
+ background:#f5f7fb;
+}
 
-const retailers = [
- "Amazon",
- "Walmart",
- "Best Buy",
- "Target",
- "Costco",
- "Newegg",
- "B&H",
- "Apple Store",
- "Micro Center",
- "Sam's Club"
-]
+h1{
+ margin-bottom:20px;
+}
 
-/*
-========================================
-SIMULATED AI RESPONSE GENERATOR
-(~250 responses)
-========================================
-*/
+input{
+ padding:10px;
+ margin-right:10px;
+}
 
-function generateResponses(){
+button{
+ padding:10px 15px;
+ cursor:pointer;
+}
 
- const responses = []
+.cards{
+ display:flex;
+ gap:20px;
+ margin-top:20px;
+}
 
- const phrases = [
+.card{
+ flex:1;
+ background:white;
+ padding:20px;
+ border-radius:10px;
+ box-shadow:0 2px 8px rgba(0,0,0,0.1);
+ text-align:center;
+}
 
-  "The best place to buy PRODUCT is STORE.",
-  "Many shoppers purchase PRODUCT from STORE because of pricing.",
-  "You can find PRODUCT at retailers like STORE.",
-  "Experts recommend checking STORE for PRODUCT deals.",
-  "STORE offers competitive pricing for PRODUCT.",
-  "Customers often buy PRODUCT from STORE online.",
-  "Popular retailers for PRODUCT include STORE.",
-  "Many reviews mention STORE when buying PRODUCT.",
-  "Consumers frequently purchase PRODUCT at STORE.",
-  "STORE is a reliable option when shopping for PRODUCT."
+.card h2{
+ margin:0;
+ font-size:28px;
+}
 
- ]
+#results{
+ margin-top:20px;
+ background:white;
+ padding:20px;
+ border-radius:10px;
+ box-shadow:0 2px 8px rgba(0,0,0,0.1);
+}
 
- const extras = [
+canvas{
+ margin-top:30px;
+ background:white;
+ padding:20px;
+ border-radius:10px;
+ box-shadow:0 2px 8px rgba(0,0,0,0.1);
+}
 
-  "due to fast shipping.",
-  "because of discounts.",
-  "because of product availability.",
-  "thanks to good return policies.",
-  "because of strong customer reviews.",
-  "due to competitive pricing.",
-  "because of convenient pickup options.",
-  "thanks to frequent promotions.",
-  "because of wide product selection.",
-  "due to trusted brand partnerships."
+</style>
 
- ]
+</head>
 
- for(const retailer of retailers){
+<body>
 
-  for(const phrase of phrases){
+<h1>NOLAlytics AI Retail Visibility Analyzer</h1>
 
-   for(const extra of extras){
+<input id="storeInput" placeholder="Retail Store (example: Walmart)" />
 
-    const response =
-     phrase
-      .replace("STORE", retailer)
-      .replace("PRODUCT","headphones") +
-     " " + extra
+<input id="productInput" placeholder="Product (example: headphones)" />
 
-    responses.push(response)
+<button onclick="runAudit()">Analyze Visibility</button>
 
-   }
+<div class="cards">
 
-  }
+<div class="card">
+<h3>Prompts Tested</h3>
+<h2 id="promptsCard">0</h2>
+</div>
+
+<div class="card">
+<h3>Best Performing AI</h3>
+<h2 id="bestEngine">-</h2>
+</div>
+
+<div class="card">
+<h3>Highest Visibility</h3>
+<h2 id="topScore">0%</h2>
+</div>
+
+</div>
+
+<div id="results"></div>
+
+<h3>AI Visibility Leaderboard</h3>
+
+<canvas id="visibilityChart"></canvas>
+
+<script>
+
+let chart
+
+async function runAudit(){
+
+ const store =
+ document.getElementById("storeInput").value
+
+ const product =
+ document.getElementById("productInput").value
+
+ document.getElementById("results").innerHTML =
+ "Running AI visibility audit..."
+
+ const res = await fetch("/api/audit",{
+
+  method:"POST",
+
+  headers:{
+   "Content-Type":"application/json"
+  },
+
+  body:JSON.stringify({ store, product })
+
+ })
+
+ const data = await res.json()
+
+ if(data.error){
+
+  document.getElementById("results").innerHTML =
+  data.error
+
+  return
 
  }
 
- return responses
+ const engines =
+ Object.keys(data.visibility)
 
-}
+ const scores =
+ Object.values(data.visibility)
 
-const simulatedResponses = generateResponses()
+ let bestEngine = engines[0]
+ let bestScore = scores[0]
 
-/*
-========================================
-PATH SETUP
-========================================
-*/
-
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
-
-app.use(express.static(path.join(__dirname,"../frontend")))
-
-app.get("/",(req,res)=>{
- res.sendFile(path.join(__dirname,"../frontend/dashboard.html"))
-})
-
-/*
-========================================
-PROMPT GENERATOR
-========================================
-*/
-
-function generatePrompts(product){
-
- return [
-
-  `best ${product}`,
-  `top rated ${product}`,
-  `best ${product} brands`,
-  `where to buy ${product}`,
-  `best place to buy ${product}`,
-  `best ${product} deals`,
-  `what store sells ${product}`,
-  `best ${product} online`,
-  `best ${product} reddit`,
-  `top ${product} recommendations`
-
- ]
-
-}
-
-/*
-========================================
-SIMULATED AI QUERY
-========================================
-*/
-
-function querySimulatedAI(prompt){
-
- const randomIndex =
- Math.floor(Math.random() * simulatedResponses.length)
-
- return simulatedResponses[randomIndex]
-
-}
-
-/*
-========================================
-AI VISIBILITY AUDIT
-========================================
-*/
-
-app.post("/api/audit",(req,res)=>{
-
- const { store, product } = req.body
-
- console.log("Running demo audit:",store,product)
-
- const prompts = generatePrompts(product)
-
- const mentions = {}
-
- aiEngines.forEach(engine=>{
-  mentions[engine] = 0
+ engines.forEach((e,i)=>{
+  if(scores[i] > bestScore){
+   bestScore = scores[i]
+   bestEngine = e
+  }
  })
 
- for(const prompt of prompts){
+ document.getElementById("promptsCard").innerText =
+ data.promptsTested
 
-  for(const engine of aiEngines){
+ document.getElementById("bestEngine").innerText =
+ bestEngine.toUpperCase()
 
-   const response = querySimulatedAI(prompt)
+ document.getElementById("topScore").innerText =
+ bestScore + "%"
 
-   if(response.toLowerCase().includes(store.toLowerCase())){
-    mentions[engine]++
-   }
+ let html = `
+ <h3>AI Visibility Results</h3>
+ Store: <b>${data.store}</b><br>
+ Product: <b>${data.product}</b><br><br>
+ `
 
-  }
+ engines.forEach(engine=>{
 
+  html += `
+  <b>${engine.toUpperCase()}</b><br>
+  Mentions: ${data.mentions[engine]}<br>
+  Visibility Score: ${data.visibility[engine]}%<br><br>
+  `
+
+ })
+
+ document.getElementById("results").innerHTML = html
+
+ renderChart(data.visibility)
+
+}
+
+function renderChart(visibility){
+
+ const labels =
+ Object.keys(visibility)
+
+ const values =
+ Object.values(visibility)
+
+ const ctx =
+ document.getElementById("visibilityChart").getContext("2d")
+
+ if(chart){
+  chart.destroy()
  }
 
- const visibility = {}
+ chart = new Chart(ctx,{
 
- aiEngines.forEach(engine=>{
-  visibility[engine] =
-   Math.round((mentions[engine] / prompts.length) * 100)
+  type:"bar",
+
+  data:{
+   labels:labels,
+   datasets:[{
+    label:"Visibility Score %",
+    data:values,
+    borderWidth:1
+   }]
+  },
+
+  options:{
+   scales:{
+    y:{
+     beginAtZero:true,
+     max:100
+    }
+   }
+  }
+
  })
 
- res.json({
+}
 
-  store,
-  product,
-  promptsTested:prompts.length,
-  mentions,
-  visibility
+</script>
 
- })
+</body>
 
-})
-
-/*
-========================================
-SERVER START
-========================================
-*/
-
-const PORT = process.env.PORT || 5000
-
-app.listen(PORT,()=>{
- console.log(`Server running on port ${PORT}`)
-})
+</html>
