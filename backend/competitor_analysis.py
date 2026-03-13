@@ -1,11 +1,13 @@
+# backend/competitor_analysis.py
 from collections import Counter
 
 def competitor_share(platform_products):
+    """
+    Count occurrences of each product/brand across platforms.
+    platform_products: dict {platform: list_of_products}
+    Returns: dict {platform: {product: count}}
+    """
     result = {}
     for platform, products in platform_products.items():
-        # products is already a list, not a dict
-        counts = {}
-        for p in products:
-            counts[p] = counts.get(p, 0) + 1
-        result[platform] = counts
+        result[platform] = dict(Counter(products))
     return result
