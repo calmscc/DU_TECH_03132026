@@ -4,3 +4,5 @@ groq
 python-dotenv
 python-multipart
 pydantic
+pandas
+numpy
