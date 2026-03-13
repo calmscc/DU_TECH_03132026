@@ -4,6 +4,16 @@ import axios from "axios";
 import path from "path";
 import { fileURLToPath } from "url";
 
+const app = express();
+
+app.use(cors());
+app.use(express.json());
+
+/*
+=====================================================
+RETAIL STORES WE TRACK
+=====================================================
+*/
 
 const retailStores = [
  "Amazon",
@@ -17,30 +27,37 @@ const retailStores = [
  "Samsung"
 ];
 
-
-
-const app = express();
-
-app.use(cors());
-app.use(express.json());
-
-
+/*
+=====================================================
+PATH SETUP
+=====================================================
+*/
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+/*
+=====================================================
+SERVE FRONTEND
+=====================================================
+*/
 
 app.use(express.static(path.join(__dirname, "../frontend")));
 
 app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "../frontend/dashboard.html"));
+ res.sendFile(path.join(__dirname, "../frontend/dashboard.html"));
 });
 
-
+/*
+=====================================================
+GENERATED PRODUCT DATABASE
+=====================================================
+*/
 
 function generateProducts(){
 
  const categories = {
+
   tools:[
    {brand:"Estwing", product:"Framing Hammer"},
    {brand:"Stanley", product:"Claw Hammer"},
@@ -66,6 +83,7 @@ function generateProducts(){
    {brand:"Adidas", product:"Ultraboost"},
    {brand:"Wilson", product:"Pro Staff Tennis Racket"}
   ]
+
  }
 
  const stores = [
@@ -100,13 +118,7 @@ function generateProducts(){
 
     rating:(Math.random()*2+3).toFixed(1),
 
-    description:`${p.brand} ${p.product} designed for professional and consumer use`,
-
-    specs:{
-     quality:"premium",
-     durability:"high",
-     popularity:"top rated"
-    }
+    description:`${p.brand} ${p.product} designed for professional and consumer use`
 
    })
 
@@ -119,47 +131,12 @@ function generateProducts(){
 
 const products = generateProducts()
 
-
-
-let auditStatus = {
- progress:0,
- currentPrompt:"",
- completed:false,
- results:null
-}
-
-
-
-async function getGooglePrompts(keyword){
-
- try{
-
- const url =
- `https://suggestqueries.google.com/complete/search?client=firefox&q=${keyword}`
-
- const res = await axios.get(url)
-
- return res.data[1]
-
- }catch{
-
- return []
-
- }
-
-}
-
-function expandPrompts(keyword){
-
- return [
-  `best ${keyword} brands`,
-  `top rated ${keyword}`,
-  `what ${keyword} do professionals recommend`,
-  `best ${keyword} under 100`,
-  `where can I buy ${keyword}`
- ]
-
-}
+/*
+=====================================================
+PROMPT HARVESTER
+(Google + Reddit + templates)
+=====================================================
+*/
 
 async function harvestPrompts(product){
 
@@ -203,6 +180,8 @@ async function harvestPrompts(product){
   console.log("Reddit prompts failed")
  }
 
+ /* SHOPPING PROMPT TEMPLATES */
+
  const templates = [
 
   `best ${product}`,
@@ -231,7 +210,11 @@ async function harvestPrompts(product){
 
 }
 
-
+/*
+=====================================================
+SIMULATED AI QUERY
+=====================================================
+*/
 
 async function queryAI(prompt){
 
@@ -242,7 +225,11 @@ async function queryAI(prompt){
 
   const res = await axios.get(url)
 
-  return res.data.AbstractText || ""
+  return (
+   res.data.AbstractText ||
+   res.data.RelatedTopics?.map(t=>t.Text).join(" ") ||
+   ""
+  )
 
  }catch{
 
@@ -252,17 +239,11 @@ async function queryAI(prompt){
 
 }
 
-
-function extractMentions(response,brands){
-
- const text = response.toLowerCase()
-
- return brands.filter(b =>
-  text.includes(b.toLowerCase())
- )
-
-}
-
+/*
+=====================================================
+AUDIT ENDPOINT
+=====================================================
+*/
 
 app.post("/api/audit", async (req,res)=>{
 
@@ -302,12 +283,11 @@ app.post("/api/audit", async (req,res)=>{
 
 })
 
-
-
-app.get("/api/status",(req,res)=>{
- res.json(auditStatus)
-})
-
+/*
+=====================================================
+PRODUCT APIs
+=====================================================
+*/
 
 app.get("/api/products",(req,res)=>{
  res.json(products)
@@ -325,19 +305,11 @@ app.get("/api/products/category/:category",(req,res)=>{
 
 })
 
-app.get("/api/products/search/:brand",(req,res)=>{
-
- const brand = req.params.brand.toLowerCase()
-
- const filtered = products.filter(p =>
-  p.brand.toLowerCase().includes(brand)
- )
-
- res.json(filtered)
-
-})
-
-
+/*
+=====================================================
+SERVER
+=====================================================
+*/
 
 const PORT = process.env.PORT || 5000
 
