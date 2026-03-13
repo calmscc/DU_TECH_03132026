@@ -4,25 +4,10 @@ import axios from "axios";
 import path from "path";
 import { fileURLToPath } from "url";
 
-import "./scheduler.js";
-
 const app = express();
 
 app.use(cors());
 app.use(express.json());
-
-
-const retailStores = [
- "Amazon",
- "Walmart",
- "Target",
- "Best Buy",
- "Costco",
- "Home Depot",
- "Lowe's",
- "Apple",
- "Samsung"
-];
 
 
 
@@ -36,7 +21,6 @@ const aiEngines = [
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
 
 
 app.use(express.static(path.join(__dirname, "../frontend")));
@@ -100,17 +84,11 @@ function generateProducts(){
     id:id++,
 
     name:`${p.brand} ${p.product}`,
-
     brand:p.brand,
-
     category:category,
-
     store:stores[Math.floor(Math.random()*stores.length)],
-
     price:Math.floor(Math.random()*900)+50,
-
     rating:(Math.random()*2+3).toFixed(1),
-
     description:`${p.brand} ${p.product} designed for professional and consumer use`
 
    })
@@ -125,10 +103,10 @@ function generateProducts(){
 const products = generateProducts()
 
 
+
 async function harvestPrompts(product){
 
  const prompts = []
-
 
  try{
 
@@ -137,17 +115,9 @@ async function harvestPrompts(product){
 
   const googleRes = await axios.get(googleURL)
 
-  const suggestions = googleRes.data[1]
+  googleRes.data[1].forEach(p=>prompts.push(p))
 
-  suggestions.forEach(s=>{
-   prompts.push(s)
-  })
-
- }catch(e){
-  console.log("Google suggestions failed")
- }
-
-
+ }catch{}
 
  try{
 
@@ -156,40 +126,26 @@ async function harvestPrompts(product){
 
   const redditRes = await axios.get(redditURL)
 
-  const posts = redditRes.data.data.children
-
-  posts.forEach(post=>{
+  redditRes.data.data.children.forEach(post=>{
    prompts.push(post.data.title)
   })
 
- }catch(e){
-  console.log("Reddit prompts failed")
- }
-
+ }catch{}
 
  const templates = [
 
   `best ${product}`,
   `top rated ${product}`,
-  `best ${product} brands`,
-  `best ${product} under 100`,
   `best ${product} under 200`,
   `where to buy ${product}`,
   `best place to buy ${product}`,
   `best ${product} deals`,
   `what store sells ${product}`,
-  `best ${product} online`,
-  `what ${product} do professionals recommend`,
-  `cheap ${product} vs expensive`,
-  `best ${product} reddit`,
-  `best ${product} for beginners`,
-  `best ${product} for professionals`
+  `best ${product} reddit`
 
  ]
 
- templates.forEach(t=>{
-  prompts.push(t)
- })
+ templates.forEach(t=>prompts.push(t))
 
  return [...new Set(prompts)]
 
@@ -221,33 +177,18 @@ async function queryAI(engine, prompt){
 
 }
 
-app.get("/api/results/:product", async (req,res)=>{
 
- const { product } = req.params;
-
- const { data } = await supabase
-  .from("ai_visibility_results")
-  .select("*")
-  .eq("product", product)
-  .order("mentions", { ascending:false });
-
- res.json(data);
-
-});
 
 app.post("/api/audit", async (req,res)=>{
 
- const { product } = req.body
+ const { store, product } = req.body
 
  const prompts = await harvestPrompts(product)
 
- const results = {}
+ const mentions = {}
 
  aiEngines.forEach(engine=>{
-  results[engine] = {}
-  retailStores.forEach(store=>{
-   results[engine][store] = 0
-  })
+  mentions[engine] = 0
  })
 
  for(const prompt of prompts){
@@ -256,32 +197,27 @@ app.post("/api/audit", async (req,res)=>{
 
    const response = await queryAI(engine, prompt)
 
-   for(const store of retailStores){
-
-    if(response.toLowerCase().includes(store.toLowerCase())){
-     results[engine][store]++
-    }
-
+   if(response.toLowerCase().includes(store.toLowerCase())){
+    mentions[engine]++
    }
 
   }
 
  }
 
- const rankings = {}
+ const visibility = {}
 
  aiEngines.forEach(engine=>{
-
-  rankings[engine] = Object.entries(results[engine])
-   .sort((a,b)=> b[1]-a[1])
-   .map(([store,mentions])=>({store,mentions}))
-
+  visibility[engine] =
+   Math.round((mentions[engine] / prompts.length) * 100)
  })
 
  res.json({
+  store,
   product,
   promptsTested: prompts.length,
-  rankings
+  mentions,
+  visibility
  })
 
 })
@@ -302,6 +238,7 @@ app.get("/api/products/category/:category",(req,res)=>{
  res.json(filtered)
 
 })
+
 
 
 const PORT = process.env.PORT || 5000
