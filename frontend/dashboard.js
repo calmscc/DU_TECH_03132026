@@ -6,22 +6,25 @@ let product = document.getElementById("product").value.trim()
 let brand = document.getElementById("brand").value.trim()
 
 if(!product || !brand){
+
 alert("Please enter both product and brand")
+
 return
 }
 
 document.getElementById("results-section").style.display="block"
 
-let res = await fetch(`/analyze?product=${encodeURIComponent(product)}&brand=${encodeURIComponent(brand)}`)
+let res = await fetch(
+`/analyze?product=${encodeURIComponent(product)}&brand=${encodeURIComponent(brand)}`
+)
 
 let data = await res.json()
 
-console.log(data)
+console.log("API DATA:", data)
 
 
-// --------------------
+
 // EXECUTIVE SUMMARY
-// --------------------
 
 let summary = `
 <h2>Executive Summary</h2>
@@ -35,9 +38,7 @@ document.getElementById("summary").innerHTML = summary
 
 
 
-// --------------------
 // COMPETITOR LEADERBOARD
-// --------------------
 
 let sorted = Object.entries(data.competitors)
 .sort((a,b)=>b[1]-a[1])
@@ -54,9 +55,7 @@ document.getElementById("competitors").innerHTML=leaderboard
 
 
 
-// --------------------
 // KEY INSIGHT
-// --------------------
 
 let top = sorted[0]
 
@@ -69,9 +68,7 @@ document.getElementById("insight").innerHTML=insight
 
 
 
-// --------------------
 // AI QUERY RESULTS
-// --------------------
 
 let queryHTML=""
 
@@ -94,9 +91,7 @@ document.getElementById("queries").innerHTML=queryHTML
 
 
 
-// --------------------
 // FULL AI RESPONSES (COLLAPSIBLE)
-// --------------------
 
 let html=""
 
@@ -116,7 +111,7 @@ document.getElementById("responses").innerHTML=html
 
 }catch(error){
 
-console.error(error)
+console.error("Dashboard error:", error)
 
 document.getElementById("responses").innerHTML =
 "<p style='color:red;'>Error running analysis.</p>"
