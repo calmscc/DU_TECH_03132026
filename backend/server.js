@@ -160,7 +160,9 @@ async function queryAI(engine, prompt){
   const url =
   `https://api.duckduckgo.com/?q=${prompt}&format=json`
 
-  const res = await axios.get(url)
+  const res = await axios.get(url, {
+   timeout: 5000
+  })
 
   const text =
    res.data.AbstractText ||
@@ -169,7 +171,9 @@ async function queryAI(engine, prompt){
 
   return text
 
- }catch{
+ }catch(err){
+
+  console.log("Query failed:", prompt)
 
   return ""
 
