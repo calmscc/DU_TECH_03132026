@@ -1,8 +1,6 @@
 import os
 from backend.config import client
 
-client = Groq(api_key=os.getenv("GROQ_API_KEY"))
-
 platforms = {
     "ChatGPT":"gpt-4o-mini",
     "Gemini":"gpt-4o-mini",
