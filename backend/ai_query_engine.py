@@ -1,5 +1,5 @@
 import os
-from config import client
+from backend.config import client
 
 client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
