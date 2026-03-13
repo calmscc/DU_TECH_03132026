@@ -18,7 +18,6 @@ def home():
 
 
 @app.get("/analyze")
-
 def analyze(product: str = Query(...), brand: str = Query(...)):
 
     responses = query_ai(product)
@@ -29,7 +28,8 @@ def analyze(product: str = Query(...), brand: str = Query(...)):
 
         retailers = extract_retailers(text)
 
-        platform_products[prompt] = products
+        # FIXED HERE
+        platform_products[prompt] = retailers
 
     audit = ai_visibility_audit(product, brand, platform_products)
 
