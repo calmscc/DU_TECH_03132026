@@ -1,33 +1,33 @@
-from backend.config import client
+import os
+from openai import OpenAI
 
-queries = [
-    "best laptops under $500",
-    "top student laptops under $500",
-    "best budget laptops 2026",
-    "best affordable laptops for college"
-]
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-def ask_ai(query):
+platforms = {
+    "ChatGPT":"gpt-4o-mini",
+    "Gemini":"gpt-4o-mini",
+    "Copilot":"gpt-4o-mini"
+}
 
-    response = client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=[{"role":"user","content":query}]
-    )
+def query_ai(product):
 
-    return response.choices[0].message.content
+    query = f"What are the most popular brands or products for {product}? Give a ranked list."
 
+    results = {}
 
-def run_queries():
+    for platform, model in platforms.items():
 
-    results = []
+        try:
 
-    for q in queries:
+            response = client.chat.completions.create(
+                model=model,
+                messages=[{"role":"user","content":query}]
+            )
 
-        response = ask_ai(q)
+            results[platform] = response.choices[0].message.content
 
-        results.append({
-            "query": q,
-            "response": response
-        })
+        except Exception as e:
+
+            results[platform] = str(e)
 
     return results
