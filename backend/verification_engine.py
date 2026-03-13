@@ -1,19 +1,11 @@
-def verify_product_accuracy(platform_products, expected_brand):
+def calculate_visibility(mentions,total_prompts):
 
-    incorrect_mentions = []
+    visibility = {}
 
-    for platform, products in platform_products.items():
+    for engine,count in mentions.items():
 
-        if expected_brand not in products:
+        visibility[engine] = round(
+            (count/total_prompts)*100
+        )
 
-            incorrect_mentions.append(platform)
-
-    accuracy_score = (
-        (len(platform_products) - len(incorrect_mentions))
-        / len(platform_products)
-    ) * 100
-
-    return {
-        "accuracy_score": round(accuracy_score,2),
-        "missing_platforms": incorrect_mentions
-    }
+    return visibility
